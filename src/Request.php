@@ -4,6 +4,7 @@
  */
 namespace Evas\Http;
 
+use Evas\Http\BodyTrait;
 use Evas\Http\HeadersTrait;
 use Evas\Http\RequestInterface;
 
@@ -15,9 +16,9 @@ use Evas\Http\RequestInterface;
 class Request implements RequestInterface
 {
     /**
-     * Подключаем трейт заголовков.
+     * Подключаем трейты тела и заголовков.
      */
-    use HeadersTrait;
+    use BodyTrait, HeadersTrait;
 
 
     /**

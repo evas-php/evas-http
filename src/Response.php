@@ -5,6 +5,7 @@
 namespace Evas\Http;
 
 use \Exception;
+use Evas\Http\BodyTrait;
 use Evas\Http\HeadersTrait;
 use Evas\Http\ResponseInterface;
 
@@ -16,9 +17,9 @@ use Evas\Http\ResponseInterface;
 class Response implements ResponseInterface
 {
     /**
-     * Подключаем трейт заголовков.
+     * Подключаем трейты тела и заголовков.
      */
-    use HeadersTrait;
+    use BodyTrait, HeadersTrait;
 
     /**
      * @static array маппинг статусов ответа
@@ -49,11 +50,6 @@ class Response implements ResponseInterface
     public $statusText = 'OK';
 
     /**
-     * @var string тело
-     */
-    public $body = '';
-
-    /**
      * Установка кода статуса.
      * @param int
      * @throws Exception
@@ -66,28 +62,6 @@ class Response implements ResponseInterface
         if (! $this->statusText) {
             throw new Exception(static::ERROR_HTTP_STATUS_NOT_FOUND . " $this->statusCode");
         }
-        return $this;
-    }
-
-    /**
-     * Установка тела.
-     * @param string
-     * @return self
-     */
-    public function withBody(string $body)
-    {
-        $this->body = $body;
-        return $this;
-    }
-
-    /**
-     * Установка тела с преобразованием в json.
-     * @param mixed
-     * @return self
-     */
-    public function withBodyJson($body)
-    {
-        $this->body = json_encode($body);
         return $this;
     }
 
@@ -111,15 +85,6 @@ class Response implements ResponseInterface
     public function getStatusCode(): int
     {
         return $this->statusCode;
-    }
-
-    /**
-     * Получение тела.
-     * @return string
-     */
-    public function getBody(): string
-    {
-        return $this->body;
     }
 
 

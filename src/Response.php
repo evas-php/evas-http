@@ -11,7 +11,7 @@ use Evas\Http\ResponseInterface;
 
 /**
  * Класс ответа.
- * @author Egor Vasyakin <e.vasyakin@itevas.ru>
+ * @author Egor Vasyakin <egor@evas-php.com>
  * @since 1.0
  */
 class Response implements ResponseInterface

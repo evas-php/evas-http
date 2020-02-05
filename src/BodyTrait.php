@@ -48,10 +48,11 @@ trait BodyTrait
 
     /**
      * Получение тела с преобразованием json.
-     * @return mixed
+     * @return object|null
      */
-    public function getBodyJson()
+    public function getBodyJson(): ?object
     {
-        return json_decode($this->getBody());
+        $decoded = json_decode($this->getBody());
+        return $decoded ?? null;
     }
 }

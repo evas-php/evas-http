@@ -4,7 +4,7 @@
  */
 namespace Evas\Http;
 
-use \Exception;
+use Evas\Http\HttpException;
 use Evas\Http\BodyTrait;
 use Evas\Http\HeadersTrait;
 use Evas\Http\ResponseInterface;
@@ -51,16 +51,28 @@ class Response implements ResponseInterface
 
     /**
      * Установка кода статуса.
-     * @param int
-     * @throws Exception
+     * @param int код статуса
+     * @param string|null кастомный текст статуса
+     * @throws HttpException
      * @return self
      */
-    public function withStatusCode(int $code)
+    public function withStatusCode(int $code, string $statusText = null)
     {
         $this->statusCode = $code;
-        $this->statusText = static::HTTP_STATUSES[$this->statusCode] ?? null;
+        return $this->withStatusText($statusText);
+    }
+
+    /**
+     * Установка текста статуса.
+     * @param string|null кастомный текст статуса
+     * @throws HttpException
+     * @return self
+     */
+    public function withStatusText(string $statusText = null)
+    {
+        $this->statusText = $statusText ?? static::HTTP_STATUSES[$this->statusCode] ?? null;
         if (! $this->statusText) {
-            throw new Exception(static::ERROR_HTTP_STATUS_NOT_FOUND . " $this->statusCode");
+            throw new HttpException(static::ERROR_HTTP_STATUS_NOT_FOUND . " $this->statusCode");
         }
         return $this;
     }
@@ -75,8 +87,7 @@ class Response implements ResponseInterface
         $this->body .= $message;
         return $this;
     }
-
-
+    
 
     /**
      * Получение кода статуса.
@@ -87,6 +98,14 @@ class Response implements ResponseInterface
         return $this->statusCode;
     }
 
+    /**
+     * Получение текста статуса.
+     * @return string|null
+     */
+    public function getStatusText(): ?string
+    {
+        return $this->statusText ?? static::HTTP_STATUSES[$this->statusCode] ?? null;
+    }
 
 
     /**

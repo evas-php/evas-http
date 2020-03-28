@@ -129,6 +129,7 @@ class Response implements ResponseInterface
      */
     public function sendJson(int $code = null, $body = null, array $headers = null)
     {
+        $this->withHeader('Content-Type', 'application/json');
         if ($body) $this->withBodyJson($body);
         return $this->send($code, null, $headers);
     }

@@ -23,18 +23,9 @@ namespace Evas\Http;
      */
     public function withHeaders(array $headers)
     {
-        $this->headers = &$headers;
-        return $this;
-    }
-
-    /**
-     * Установка заголовков поверх имеющихся.
-     * @param array
-     * @return self
-     */
-    public function withAddedHeaders(array $headers)
-    {
-        $this->headers = array_merge($this->headers, $headers);
+        foreach ($headers as $name => $value) {
+            $this->withHeader($name, $value);
+        }
         return $this;
     }
 
@@ -46,10 +37,20 @@ namespace Evas\Http;
      */
     public function withHeader(string $name, string $value)
     {
-        $this->headers[$name] = $value;
+        $this->headers[strtolower($name)] = $value;
         return $this;
     }
 
+    /**
+     * Установка заголовка в дополнение к имеющемуся.
+     * @param array
+     * @return self
+     */
+    public function withAddedHeader(string $name, string $value)
+    {
+        $this->headers[strtolower($name)] = $this->getHeader($name) . $value;
+        return $this;
+    }
 
 
     /**
@@ -62,7 +63,7 @@ namespace Evas\Http;
         if (is_array($names)) {
             $data = [];
             foreach ($names as &$name) {
-                $data[$name] = $this->headers[$name];
+                $data[$name] = $this->headers[strtolower($name)];
             }
             return $data;
         }
@@ -76,6 +77,6 @@ namespace Evas\Http;
      */
     public function getHeader(string $name)
     {
-        return $this->headers[$name] ?? null;
+        return $this->headers[strtolower($name)] ?? null;
     }
  }

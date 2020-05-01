@@ -1,8 +1,8 @@
 {
     "name": "evas-php/evas-http",
     "description": "Http module (Request & Response classes & interfaces, HeadersTrait)",
+    "keywords": ["http", "request", "response", "evas-php"],
     "version": "1.0",
-    "minimum-stability": "dev",
     "type": "library",
     "license": "CC-BY-4.0",
     "authors": [

@@ -1,6 +1,6 @@
 <?php
 /**
- * @package evas-php/evas-http
+ * @package evas-php\evas-http
  */
 namespace Evas\Http;
 

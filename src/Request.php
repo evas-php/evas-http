@@ -153,7 +153,7 @@ class Request implements RequestInterface
      */
     public function getPostList(array $names): array
     {
-        return $this->_getListParams($this->post, $names);
+        return $this->_getParamsList($this->post, $names);
     }
 
     /**
@@ -173,7 +173,7 @@ class Request implements RequestInterface
      */
     public function getQueryList(array $names): array
     {
-        return $this->_getListParams($this->query, $names);
+        return $this->_getParamsList($this->query, $names);
     }
 
     /**
@@ -195,7 +195,7 @@ class Request implements RequestInterface
     public function getParamsList(array $names): array
     {
         $params =  ['GET' => &$this->query, 'POST' => &$this->post];
-        return $this->_getListParams($params[$this->method], $names);
+        return $this->_getParamsList($params[$this->method], $names);
     }
 
 
@@ -235,7 +235,7 @@ class Request implements RequestInterface
      * @param array имена
      * @return array значения
      */
-    protected function _getListParams(array &$params, array $names)
+    protected function _getParamsList(array &$params, array $names)
     {
         $data = [];
         foreach ($names as &$name) {

@@ -112,5 +112,5 @@ interface RequestInterface
      * Получение ip пользователя.
      * @return string
      */
-    public function getUserIp(): string;
+    public function getUserIp(): ?string;
 }

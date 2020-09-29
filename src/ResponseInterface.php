@@ -63,4 +63,9 @@ interface ResponseInterface
      * @param array|null заголовки
      */
     public function sendJson(int $code = null, $body = null, array $headers = null);
+
+    /**
+     * Реальная отправка.
+     */
+    public function realSend();
 }

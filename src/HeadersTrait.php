@@ -21,7 +21,7 @@ namespace Evas\Http;
      * @param array
      * @return self
      */
-    public function withHeaders(array $headers)
+    public function withHeaders(array $headers): object
     {
         foreach ($headers as $name => $value) {
             $this->withHeader($name, $value);
@@ -35,7 +35,7 @@ namespace Evas\Http;
      * @param string значение
      * @return self
      */
-    public function withHeader(string $name, string $value)
+    public function withHeader(string $name, string $value): object
     {
         $this->headers[strtolower($name)] = $value;
         return $this;
@@ -46,7 +46,7 @@ namespace Evas\Http;
      * @param array
      * @return self
      */
-    public function withAddedHeader(string $name, string $value)
+    public function withAddedHeader(string $name, string $value): object
     {
         $this->headers[strtolower($name)] = $this->getHeader($name) . $value;
         return $this;
@@ -75,7 +75,7 @@ namespace Evas\Http;
      * @param string имя
      * @return string|null значение
      */
-    public function getHeader(string $name)
+    public function getHeader(string $name): ?string
     {
         return $this->headers[strtolower($name)] ?? null;
     }

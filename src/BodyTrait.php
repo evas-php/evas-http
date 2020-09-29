@@ -4,6 +4,8 @@
  */
 namespace Evas\Http;
 
+use Evas\Http\HttpException;
+
 /**
  * Трейт тела запроса/овтета.
  * @author Egor Vasyakin <egor@evas-php.com>
@@ -21,9 +23,20 @@ trait BodyTrait
      * @param string
      * @return self
      */
-    public function withBody(string $body)
+    public function withBody(string $body): object
     {
         $this->body = $body;
+        return $this;
+    }
+
+    /**
+     * Добавление тела.
+     * @param string
+     * @return self
+     */
+    public function withAddedBody(string $body): object
+    {
+        $this->body .= $body;
         return $this;
     }
 
@@ -32,7 +45,7 @@ trait BodyTrait
      * @param mixed
      * @return self
      */
-    public function withBodyJson($body)
+    public function withBodyJson($body): object
     {
         return $this->withBody(json_encode($body));
     }
@@ -52,7 +65,12 @@ trait BodyTrait
      */
     public function getBodyJson(): ?object
     {
-        $decoded = json_decode($this->getBody());
-        return $decoded ?? null;
+        $body = $this->getBody();
+        try {
+            $decoded = json_decode($body);
+            return $decoded ?? null;
+        } catch (\Exception $e) {
+            throw new HttpException("Failed to parse json body: $body");
+        }
     }
 }

@@ -6,6 +6,7 @@ namespace Evas\Http;
 
 use Evas\Http\BodyTrait;
 use Evas\Http\HeadersTrait;
+use Evas\Http\HttpException;
 use Evas\Http\RequestInterface;
 
 /**
@@ -56,7 +57,7 @@ class Request implements RequestInterface
      * @param string
      * @return self
      */
-    public function withMethod(string $method)
+    public function withMethod(string $method): object
     {
         $this->method = $method;
         return $this;
@@ -67,7 +68,7 @@ class Request implements RequestInterface
      * @param string
      * @return self
      */
-    public function withUri(string $uri)
+    public function withUri(string $uri): object
     {
         $this->uri = $uri;
         $this->path = parse_url($uri, PHP_URL_PATH) ?? '';
@@ -79,7 +80,7 @@ class Request implements RequestInterface
      * @param array
      * @return self
      */
-    public function withPost(array $post)
+    public function withPost(array $post): object
     {
         $this->post = &$post;
         return $this;
@@ -90,7 +91,7 @@ class Request implements RequestInterface
      * @param array
      * @return self
      */
-    public function withQuery(array $query)
+    public function withQuery(array $query): object
     {
         $this->query = &$query;
         return $this;
@@ -101,7 +102,7 @@ class Request implements RequestInterface
      * @param string
      * @return self
      */
-    public function withUserIp(string $userIp)
+    public function withUserIp(string $userIp): object
     {
         $this->userIp = $userIp;
         return $this;
@@ -201,11 +202,31 @@ class Request implements RequestInterface
 
     /**
      * Получение ip пользователя.
-     * @return string
+     * @return string|null
      */
-    public function getUserIp(): string
+    public function getUserIp(): ?string
     {
         return $this->userIp;
+    }
+
+    /**
+     * Получение распарсенного тела.
+     * @return mixed
+     * @throws HttpException
+     */
+    public function getBodyParsed()
+    {
+        $type = $this->getHeader('Content-Type');
+        $body = $this->getBody();
+        try {
+            if ('application/json' === $type) {
+                $decoded = json_decode($body);
+                return $decoded ?? null;
+            }
+        } catch (\Exception $e) {
+            throw new HttpException("Failed to parse $type body: $body");
+        }
+        return $body;
     }
 
 
@@ -235,7 +256,7 @@ class Request implements RequestInterface
      * @param array имена
      * @return array значения
      */
-    protected function _getParamsList(array &$params, array $names)
+    protected function _getParamsList(array &$params, array $names): array
     {
         $data = [];
         foreach ($names as &$name) {

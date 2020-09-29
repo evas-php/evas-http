@@ -56,7 +56,7 @@ class Response implements ResponseInterface
      * @throws HttpException
      * @return self
      */
-    public function withStatusCode(int $code, string $statusText = null)
+    public function withStatusCode(int $code, string $statusText = null): object
     {
         $this->statusCode = $code;
         return $this->withStatusText($statusText);
@@ -68,7 +68,7 @@ class Response implements ResponseInterface
      * @throws HttpException
      * @return self
      */
-    public function withStatusText(string $statusText = null)
+    public function withStatusText(string $statusText = null): object
     {
         $this->statusText = $statusText ?? static::HTTP_STATUSES[$this->statusCode] ?? null;
         if (! $this->statusText) {
@@ -79,13 +79,13 @@ class Response implements ResponseInterface
 
     /**
      * Запись в тело ответа.
+     * Псевдоним для метода withAddedBody.
      * @param string данные
      * @return self
      */
-    public function write(string $message)
+    public function write(string $message): object
     {
-        $this->body .= $message;
-        return $this;
+        return $this->withAddedBody($message);
     }
     
 
@@ -116,9 +116,13 @@ class Response implements ResponseInterface
      */
     public function send(int $code = null, string $body = null, array $headers = null)
     {
-        if ($code) $this->withStatusCode($code);
-        if ($body) $this->write($body);
-        if ($headers) $this->withAddedHeaders($headers);
+        if (!empty($code)) $this->withStatusCode($code);
+        if (!empty($headers)) $this->withAddedHeaders($headers);
+        if (!empty($body)) $this->write($body);
+        if ('application/json' === $this->getHeader('Content-Type')) {
+            $this->withBodyJson($this->getBody());
+        }
+        return $this->realSend();
     }
 
     /**
@@ -130,8 +134,7 @@ class Response implements ResponseInterface
     public function sendJson(int $code = null, $body = null, array $headers = null)
     {
         $this->withHeader('Content-Type', 'application/json');
-        if ($body) $this->withBodyJson($body);
-        return $this->send($code, null, $headers);
+        return $this->send($code, $body, $headers);
     }
 
     /**
@@ -142,4 +145,9 @@ class Response implements ResponseInterface
     {
         return $this->withHeader('Location', $to)->send();
     }
+
+    /**
+     * Абстрактный метод реальной отправки.
+     */
+    abstract public function realSend();
 }

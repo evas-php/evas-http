@@ -10,11 +10,11 @@ use Evas\Http\HeadersTrait;
 use Evas\Http\ResponseInterface;
 
 /**
- * Класс ответа.
+ * Абстрактный класс ответа.
  * @author Egor Vasyakin <egor@evas-php.com>
  * @since 1.0
  */
-class Response implements ResponseInterface
+abstract class Response implements ResponseInterface
 {
     /**
      * Подключаем трейты тела и заголовков.

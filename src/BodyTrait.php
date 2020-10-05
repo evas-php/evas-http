@@ -62,6 +62,7 @@ trait BodyTrait
     /**
      * Получение тела с преобразованием json.
      * @return object|null
+     * @throws HttpException
      */
     public function getBodyJson(): ?object
     {

@@ -1,22 +1,20 @@
 <?php
 /**
+ * Трейт тела http запроса/ответа.
  * @package evas-php\evas-http
+ * @author Egor Vasyakin <egor@evas-php.com>
  */
-namespace Evas\Http;
+namespace Evas\Http\Traits;
 
 use Evas\Http\HttpException;
 
-/**
- * Трейт тела запроса/овтета.
- * @author Egor Vasyakin <egor@evas-php.com>
- * @since 1.0
- */
-trait BodyTrait
+trait HttpBodyTrait
 {
-    /**
-     * @var string тело
-     */
+    /** @var string тело */
     public $body = '';
+
+    /** @var mixed распарсенное тело */
+    public $parsedBody;
 
     /**
      * Установка тела.
@@ -60,11 +58,36 @@ trait BodyTrait
     }
 
     /**
+     * Получение распарсенного тела.
+     * @param bool|null повторить парсинг
+     * @return mixed
+     * @throws HttpException
+     */
+    public function getParsedBody(bool $reload = false)
+    {
+        if (empty($this->parsedBody) || true === $reload) {
+            $type = $this->getHeader('Content-Type');
+            $body = $this->getBody();
+            try {
+                if ('application/json' === $type) {
+                    $this->parsedBody = json_decode($body);
+                }
+            } catch (\Exception $e) {
+                throw new HttpException("Failed to parse $type body: $body");
+            }
+            if (empty($this->parsedBody)) {
+                $this->parsedBody = $body;
+            }
+        }
+        return $this->parsedBody;
+    }
+
+    /**
      * Получение тела с преобразованием json.
      * @return object|null
      * @throws HttpException
      */
-    public function getBodyJson(): ?object
+    public function getJsonParsedBody(): ?object
     {
         $body = $this->getBody();
         try {

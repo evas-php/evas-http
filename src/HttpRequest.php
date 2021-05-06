@@ -1,55 +1,37 @@
 <?php
 /**
+ * Класс http запроса.
  * @package evas-php\evas-http
+ * @author Egor Vasyakin <egor@evas-php.com>
  */
 namespace Evas\Http;
 
-use Evas\Http\BodyTrait;
-use Evas\Http\HeadersTrait;
-use Evas\Http\HttpException;
-use Evas\Http\RequestInterface;
+use Evas\Http\Interfaces\RequestInterface;
+use Evas\Http\Interfaces\UriInterface;
+use Evas\Http\Traits\HttpBodyTrait;
+use Evas\Http\Traits\HttpCookiesTrait;
+use Evas\Http\Traits\HttpHeadersTrait;
+use Evas\Http\Traits\UploadedFilesTrait;
+use Evas\Http\Uri;
 
-/**
- * Класс запроса.
- * @author Egor Vasyakin <egor@evas-php.com>
- * @since 1.0
- */
-class Request implements RequestInterface
+class HttpRequest implements RequestInterface
 {
     /**
-     * Подключаем трейты тела и заголовков.
+     * Подключаем трейты тела, заголовков, списка cookies, списка загруженных файлов.
      */
-    use BodyTrait, HeadersTrait;
+    use HttpBodyTrait, HttpHeadersTrait, HttpCookiesTrait, UploadedFilesTrait;
 
-
-    /**
-     * @var string метод
-     */
+    /** @var string метод */
     public $method;
-
-    /**
-     * @var string uri
-     */
+    /** @var string uri */
     public $uri;
 
-    /**
-     * @var string путь из uri
-     */
-    public $path;
-
-    /**
-     * @var array параметры POST
-     */
+    /** @var array параметры POST */
     public $post = [];
-
-    /**
-     * @var array параметры GET
-     */
+    /** @var array параметры GET */
     public $query = [];
 
-    /**
-     * @var string ip пользователя
-     */
+    /** @var string ip пользователя */
     public $userIp;
 
     /**
@@ -57,7 +39,7 @@ class Request implements RequestInterface
      * @param string
      * @return self
      */
-    public function withMethod(string $method): object
+    public function withMethod(string $method): RequestInterface
     {
         $this->method = $method;
         return $this;
@@ -65,14 +47,39 @@ class Request implements RequestInterface
 
     /**
      * Установка uri.
-     * @param string
+     * @param UriInterface|string uri
+     * @param bool|null сохранить ли http Host
      * @return self
+     * @throws \InvalidArgumentException
      */
-    public function withUri(string $uri): object
+    public function withUri($uri, bool $preserveHost = false): RequestInterface
     {
-        $this->uri = $uri;
-        $this->path = parse_url($uri, PHP_URL_PATH) ?? '';
+        if ($uri instanceof UriInterface) {
+            $this->uri = &$uri;
+        } else if (is_string($uri) || null === $uri) {
+            $this->uri = new Uri($uri);
+        } else {
+            throw new \InvalidArgumentException(sprintf(
+                'Uri must be type string or UriInterface, %s given',
+                PhpHelper::getType($uri)
+            ));
+        }
+        if (!$preserveHost || $this->hasHeader('Host')) {
+            $this->updateHostFromUri();
+        }
         return $this;
+    }
+
+    /**
+     * Обновление http-заголовка Host по Uri.
+     */
+    private function updateHostFromUri()
+    {
+        $host = $this->uri->getHost();
+        $port = $this->uri->getPort();
+        if (empty($host)) return;
+        if (!empty($port)) $host .= ':' . $port;
+        $this->withHeader('Host', $host);
     }
 
     /**
@@ -80,7 +87,7 @@ class Request implements RequestInterface
      * @param array
      * @return self
      */
-    public function withPost(array $post): object
+    public function withPost(array $post): RequestInterface
     {
         $this->post = &$post;
         return $this;
@@ -91,7 +98,7 @@ class Request implements RequestInterface
      * @param array
      * @return self
      */
-    public function withQuery(array $query): object
+    public function withQuery(array $query): RequestInterface
     {
         $this->query = &$query;
         return $this;
@@ -102,7 +109,7 @@ class Request implements RequestInterface
      * @param string
      * @return self
      */
-    public function withUserIp(string $userIp): object
+    public function withUserIp(string $userIp): RequestInterface
     {
         $this->userIp = $userIp;
         return $this;
@@ -121,20 +128,29 @@ class Request implements RequestInterface
 
     /**
      * Получение uri.
-     * @return string
+     * @return UriInterface
      */
-    public function getUri(): string
+    public function getUri(): UriInterface
     {
         return $this->uri;
     }
 
     /**
-     * Получение пути из uri.
+     * Получение цели запроса.
      * @return string
      */
-    public function getPath(): string
+    public function getRequestTarget(): string
     {
-        return $this->path;
+        return (string) $this->uri;
+    }
+
+    /**
+     * Получение пути из uri.
+     * @return string|null
+     */
+    public function getPath(): ?string
+    {
+        return $this->uri->getPath();
     }
 
     /**
@@ -210,27 +226,6 @@ class Request implements RequestInterface
     }
 
     /**
-     * Получение распарсенного тела.
-     * @return mixed
-     * @throws HttpException
-     */
-    public function getBodyParsed()
-    {
-        $type = $this->getHeader('Content-Type');
-        $body = $this->getBody();
-        try {
-            if ('application/json' === $type) {
-                $decoded = json_decode($body);
-                return $decoded ?? null;
-            }
-        } catch (\Exception $e) {
-            throw new HttpException("Failed to parse $type body: $body");
-        }
-        return $body;
-    }
-
-
-    /**
      * Получение параметра/параметров из маппинга.
      * @param array ссылка на маппинг параметров
      * @param string|array|null имя или массив имен
@@ -263,5 +258,64 @@ class Request implements RequestInterface
             $data[] = $params[$name] ?? null;
         }
         return $data;
+    }
+
+    /**
+     * Создание или заполнение объекта запроса из глобальных свойств php.
+     * @param HttpRequest уже существующий объект
+     * @return static
+     */
+    public static function createFromGlobals(HttpRequest &$instanse = null): HttpRequest
+    {
+        if (empty($instanse)) {
+            $instanse = new static;
+        }
+        $instanse->withMethod($_SERVER['REQUEST_METHOD'])
+        ->withUri($_SERVER['REQUEST_URI'])
+        ->withHeaders(static::getAllHeaders())
+        ->withUserIp($_SERVER['REMOTE_ADDR'])
+        ->withPost($_POST)
+        ->withQuery($_GET)
+        ->withCookies($_COOKIE)
+        ->withUploadedFiles($_FILES)
+        ->withBody(file_get_contents('php://input'));
+        return $instanse;
+    }
+
+    /**
+     * Получение заголовков запроса из getallheaders или $_SERVER.
+     * @return array
+     */
+    protected static function getAllHeaders(): array
+    {
+        if (function_exists('getallheaders')) {
+            return getallheaders();
+        }
+        $headers = [];
+        foreach ($_SERVER as $key => &$value) {
+            if (preg_match('/^HTTP_(.+)$/', $key, $matches)) {
+                $name = $matches[1];
+                if ('REFERRER' === $name) $name = 'referer';
+                $name = str_replace('_', '-', $name);
+                $headers[$name] = $value;
+            }
+        }
+        return $headers;
+    }
+
+    /**
+     * Получение версии ос и браузера из юзер агента.
+     * @param string user agent
+     * @return array [browser,os]
+     */
+    public function parseUserAgent(): array
+    {
+        $ua = $this->getHeader('User-Agent');
+        if (empty($ua)) return [null, null];
+        $parts = preg_split("/^([^(]+)\/\S+?\s\(([^;)]+)?;?([^;)]+)?;?[^)]+?\) ?(.+\/\S+?)?\S?(.+\/\S+?)?$/m", $ua, -1, PREG_SPLIT_DELIM_CAPTURE);
+        $browser = $parts[1] ?? null;
+        $os = (isset($parts[2]) ? $parts[2] : null)
+            . (isset($parts[3]) ? ' '. $parts[3] : null);
+        return [$browser, $os ?? null];
     }
 }

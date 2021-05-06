@@ -1,15 +1,10 @@
 <?php
 /**
+ * Класс исключений модуля http.
  * @package evas-php\evas-http
+ * @author Egor Vasyakin <egor@evas-php.com>
  */
 namespace Evas\Http;
 
-use \Exception;
-
-/**
- * Класс исключения модуля http.
- * @author Egor Vasyakin <egor@evas-php.com>
- * @since 1.0
- */
-class HttpException extends Exception
+class HttpException extends \Exception
 {}

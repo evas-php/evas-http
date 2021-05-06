@@ -1,29 +1,26 @@
 <?php
 /**
+ * Абстрактный класс http ответа.
  * @package evas-php\evas-http
+ * @author Egor Vasyakin <egor@evas-php.com>
  */
 namespace Evas\Http;
 
+use Evas\Http\Cookie;
 use Evas\Http\HttpException;
-use Evas\Http\BodyTrait;
-use Evas\Http\HeadersTrait;
-use Evas\Http\ResponseInterface;
+use Evas\Http\Interfaces\ResponseInterface;
+use Evas\Http\Traits\HttpBodyTrait;
+use Evas\Http\Traits\HttpHeadersTrait;
+use Evas\Http\Traits\HttpSetCookieTrait;
 
-/**
- * Абстрактный класс ответа.
- * @author Egor Vasyakin <egor@evas-php.com>
- * @since 1.0
- */
-abstract class Response implements ResponseInterface
+abstract class HttpResponse implements ResponseInterface
 {
     /**
-     * Подключаем трейты тела и заголовков.
+     * Подключаем трейты тела, заголовков, установки cookie.
      */
-    use BodyTrait, HeadersTrait;
+    use HttpBodyTrait, HttpHeadersTrait, HttpSetCookieTrait;
 
-    /**
-     * @static array маппинг статусов ответа
-     */
+    /** @static array маппинг статусов ответа */
     const HTTP_STATUSES = [
         '101' => 'Web Socket Protocol Handshake',
         '200' => 'OK',
@@ -34,27 +31,21 @@ abstract class Response implements ResponseInterface
         '500' => 'Internal Server Error',
     ];
 
-    /**
-     * @static string ошибка о ненайденом статусе ответа
-     */
+    /** @static string ошибка о ненайденом статусе ответа */
     const ERROR_HTTP_STATUS_NOT_FOUND = 'Http status not found';
 
-    /**
-     * @var int код статуса
-     */
+    /** @var int код статуса */
     public $statusCode = 200;
 
-    /**
-     * @var string текст статуса
-     */
+    /** @var string текст статуса */
     public $statusText = 'OK';
 
     /**
      * Установка кода статуса.
      * @param int код статуса
      * @param string|null кастомный текст статуса
-     * @throws HttpException
      * @return self
+     * @throws HttpException
      */
     public function withStatusCode(int $code, string $statusText = null): object
     {
@@ -65,8 +56,8 @@ abstract class Response implements ResponseInterface
     /**
      * Установка текста статуса.
      * @param string|null кастомный текст статуса
-     * @throws HttpException
      * @return self
+     * @throws HttpException
      */
     public function withStatusText(string $statusText = null): object
     {
@@ -122,7 +113,9 @@ abstract class Response implements ResponseInterface
         if ('application/json' === $this->getHeader('Content-Type')) {
             $this->withBodyJson($this->getBody());
         }
-        return $this->realSend();
+        if (method_exists($this, 'realSend')) {
+            return $this->realSend();
+        }
     }
 
     /**
@@ -139,15 +132,10 @@ abstract class Response implements ResponseInterface
 
     /**
      * Редирект.
-     * @param string куда
+     * @param string uri редиректа
      */
     public function redirect(string $to)
     {
         return $this->withHeader('Location', $to)->send();
     }
-
-    /**
-     * Абстрактный метод реальной отправки.
-     */
-    abstract public function realSend();
 }

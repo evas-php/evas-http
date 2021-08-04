@@ -11,5 +11,7 @@
             "email": "egor@evas-php.com"
         }
     ],
-    "require": {}
+    "require": {
+        "evas-php/evas-base": "*"
+    }
 }

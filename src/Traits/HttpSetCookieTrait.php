@@ -7,7 +7,7 @@
 namespace Evas\Http\Traits;
 
 use \InvalidArgumentException;
-use Evas\Base\Help\PhpHelper;
+use Evas\Base\Help\PhpHelp;
 use Evas\Http\Cookie;
 use Evas\Http\Traits\HttpCookiesTrait;
 
@@ -43,7 +43,7 @@ trait HttpSetCookieTrait
         } else {
             throw new InvalidArgumentException(sprintf(
                 'Argument 1 $name must be type of string or instance of Cookie, %s given',
-                PhpHelper::getType($name)
+                PhpHelp::getType($name)
             ));
         }
         $this->withCookie($cookie->name, $cookie);

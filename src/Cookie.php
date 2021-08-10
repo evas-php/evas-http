@@ -42,8 +42,8 @@ class Cookie
 
     /**
      * Конструктор.
-     * @param string имя свойства
-     * @param array|null маппинг других параметров свойства
+     * @param string имя cookie
+     * @param array|null маппинг другие свойства cookie
      */
     public function __construct(string $name, array $props = null)
     {

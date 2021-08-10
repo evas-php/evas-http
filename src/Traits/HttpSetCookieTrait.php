@@ -6,7 +6,6 @@
  */
 namespace Evas\Http\Traits;
 
-use \InvalidArgumentException;
 use Evas\Base\Help\PhpHelp;
 use Evas\Http\Cookie;
 use Evas\Http\Traits\HttpCookiesTrait;
@@ -23,15 +22,15 @@ trait HttpSetCookieTrait
 
     /**
      * Установка нового свойства cookie.
-     * @param string|Cookie имя свойства или объект Сookie
-     * @param mixed|null значение
+     * @param string|Cookie имя cookie или объект Сookie
+     * @param mixed|null значение cookie
      * @param int|null время жизни cookie
      * @param string|null путь
      * @param string|null хост
      * @param bool|null защищенное ли соединение 
      * @param bool|null поддержка только http
      * @return self
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     public function setCookie($name, $value = null, int $expires = null, string $path = null, string $host = null, bool $secure = null, bool $httpOnly = null): object
     {
@@ -41,9 +40,9 @@ trait HttpSetCookieTrait
         } else if ($name instanceof Cookie) {
             $cookie = $name;
         } else {
-            throw new InvalidArgumentException(sprintf(
-                'Argument 1 $name must be type of string or instance of Cookie, %s given',
-                PhpHelp::getType($name)
+            throw new \InvalidArgumentException(sprintf(
+                'Argument 1 passed to %s() must be string or instance of %s, %s given',
+                __METHOD__, Cookie::class, PhpHelp::getType($name)
             ));
         }
         $this->withCookie($cookie->name, $cookie);
@@ -52,9 +51,10 @@ trait HttpSetCookieTrait
 
     /**
      * Запуск сборки свойства cookie.
-     * @param string имя свойства
-     * @param callable|array колбэек или массив данных свойства
+     * @param string имя cookie
+     * @param callable|array колбэек или массив свойств cookie
      * @return Cookie
+     * @throws \InvalidArgumentException
      */
     public function buildCookie(string $name, $props = null): Cookie
     {
@@ -62,8 +62,13 @@ trait HttpSetCookieTrait
             $cookie = new Cookie($name);
             $props = $props->bindTo($cookie);
             $props();
-        } else {
+        } else if (PhpHelp::isAssoc($props)) {
             $cookie = new Cookie($name, $props);
+        } else {
+            throw new \InvalidArgumentException(sprintf(
+                'Argument 2 passed to %s() must be array or closure, %s given',
+                __METHOD__, PhpHelp::getType($props)
+            ));
         }
         $this->setCookie($cookie);
         return $cookie;

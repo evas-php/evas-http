@@ -69,7 +69,7 @@ trait HttpBodyTrait
             $type = $this->getHeader('Content-Type');
             $body = $this->getBody();
             try {
-                if ('application/json' === $type) {
+                if (false !== strpos($type, 'application/json')) {
                     $this->parsedBody = json_decode($body);
                 }
             } catch (\Exception $e) {
@@ -85,13 +85,14 @@ trait HttpBodyTrait
     /**
      * Получение тела с преобразованием json.
      * @return object|null
+     * @param bool|null парсить ли json в массив
      * @throws HttpException
      */
-    public function getJsonParsedBody(): ?object
+    public function getJsonParsedBody(bool $toArray = false): ?object
     {
         $body = $this->getBody();
         try {
-            $decoded = json_decode($body);
+            $decoded = json_decode($body, $toArray);
             return $decoded ?? null;
         } catch (\Exception $e) {
             throw new HttpException("Failed to parse json body: $body");

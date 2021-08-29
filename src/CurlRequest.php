@@ -56,10 +56,10 @@ class CurlRequest extends HttpRequest
 
         // добавляем данные запроса
         if ('GET' !== $method) {
-            $type = $this->getHeader('Content-Type');
-            if (false !== strpos($type, 'application/json')) {
-                $this->withBodyJson($this->getBody());
-            }
+            // $type = $this->getHeader('Content-Type');
+            // if (false !== strpos($type, 'application/json')) {
+            //     $this->withBodyJson($this->getBody());
+            // }
             $body = $this->getBody();
 
             if ('POST' === $method) curl_setopt($ch, CURLOPT_POST, 1);

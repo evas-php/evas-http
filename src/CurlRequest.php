@@ -53,21 +53,24 @@ class CurlRequest extends HttpRequest
         $ch = $this->getCh();
         $method = $this->getMethod();
         $uri = $this->getUri();
-        // $headers = $this->getHeadersLines();
-        $body = 'GET' === $method ? $this->getQuery() : (
-            'POST' === $method 
-                ? json_encode($this->getPost())
-                : $this->getBody()
-        );
+        
         // добавляем данные запроса
         if ('GET' === $method) {
+            $body = $this->getQuery();
             $uri .= static::prepareDataToUriQuery($body);
         } else {
+            $type = $this->getHeader('Content-Type');
+            if (false !== strpos($type, 'application/json')) {
+                $this->withBodyJson($this->getBody());
+            }
+            $body = $this->getBody();
+
             if ('POST' === $method) curl_setopt($ch, CURLOPT_POST, 1);
             else curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
             curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
             $this->withHeader('Content-Length', mb_strlen($body));
         }
+
         // устанавливаем cookie
         if (!empty($this->cookies)) {
             $cookies = [];

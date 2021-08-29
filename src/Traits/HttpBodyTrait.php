@@ -45,6 +45,9 @@ trait HttpBodyTrait
      */
     public function withBodyJson($body): object
     {
+        if (!$this->hasHeader('Content-Type')) {
+            $this->withHeader('Content-Type', 'application/json');
+        }
         return $this->withBody(json_encode($body));
     }
 

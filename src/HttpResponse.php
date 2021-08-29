@@ -110,7 +110,8 @@ abstract class HttpResponse implements ResponseInterface
         if (!empty($code)) $this->withStatusCode($code);
         if (!empty($headers)) $this->withAddedHeaders($headers);
         if (!empty($body)) $this->write($body);
-        if ('application/json' === $this->getHeader('Content-Type')) {
+        $type = $this->getHeader('Content-Type');
+        if (false !== strpos($type, 'application/json')) {
             $this->withBodyJson($this->getBody());
         }
         if (method_exists($this, 'realSend')) {

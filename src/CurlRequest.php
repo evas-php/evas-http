@@ -53,12 +53,9 @@ class CurlRequest extends HttpRequest
         $ch = $this->getCh();
         $method = $this->getMethod();
         $uri = $this->getUri();
-        
+
         // добавляем данные запроса
-        if ('GET' === $method) {
-            $body = $this->getQuery();
-            $uri .= static::prepareDataToUriQuery($body);
-        } else {
+        if ('GET' !== $method) {
             $type = $this->getHeader('Content-Type');
             if (false !== strpos($type, 'application/json')) {
                 $this->withBodyJson($this->getBody());
@@ -80,7 +77,9 @@ class CurlRequest extends HttpRequest
             $this->withHeader('Cookie', implode(';', $cookies));
         }
         $headers = $this->getHeadersLines();
+
         // устанавливаем url и заголовки
+        $uri .= static::prepareDataToUriQuery($this->getQuery());
         curl_setopt($ch, CURLOPT_URL, $uri);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);

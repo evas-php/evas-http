@@ -102,17 +102,20 @@ abstract class HttpResponse implements ResponseInterface
     /**
      * Отправка.
      * @param int|null код статуса
-     * @param string|null тело
+     * @param mixed|null тело
      * @param array|null заголовки
      */
-    public function send(int $code = null, string $body = null, array $headers = null)
+    public function send(int $code = null, $body = null, array $headers = null)
     {
         if (!empty($code)) $this->withStatusCode($code);
         if (!empty($headers)) $this->withAddedHeaders($headers);
-        if (!empty($body)) $this->write($body);
-        $type = $this->getHeader('Content-Type');
-        if (false !== strpos($type, 'application/json')) {
-            $this->withBodyJson($this->getBody());
+        if (!empty($body)) {
+            $type = $this->getHeader('Content-Type');
+            if (false !== strpos($type, 'application/json')) {
+                $this->withBodyJson($body);
+            } else {
+                $this->write($body);
+            }
         }
         if (method_exists($this, 'realSend')) {
             return $this->realSend();

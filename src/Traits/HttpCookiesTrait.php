@@ -20,7 +20,9 @@ trait HttpCookiesTrait
      */
     public function withCookies(array $cookies): object
     {
-        $this->cookies = $cookies;
+        foreach ($cookies as $name => $value) {
+            $this->withCookie($name, $value);
+        }
         return $this;
     }
 

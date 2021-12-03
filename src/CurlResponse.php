@@ -54,6 +54,7 @@ class CurlResponse
         } catch (\Exception $e) {
             throw new HttpException($e->getMessage());
         }
+        // $responseCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $responseCode = curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
         $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
         $headers = curl_getinfo($ch, CURLINFO_HEADER_OUT);

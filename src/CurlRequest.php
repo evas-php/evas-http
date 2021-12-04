@@ -92,7 +92,6 @@ class CurlRequest extends HttpRequest
      */
     public function send(): CurlResponse
     {
-        $this->prepareSend();
         return new CurlResponse($this);
     }
 

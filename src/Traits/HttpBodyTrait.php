@@ -8,6 +8,10 @@ namespace Evas\Http\Traits;
 
 use Evas\Http\HttpException;
 
+if (!defined('EVAS_DECODE_JSON_HTTP_BODY_INTO_ARRAY')) {
+    define('EVAS_DECODE_JSON_HTTP_BODY_INTO_ARRAY', true);
+}
+
 trait HttpBodyTrait
 {
     /** @var string тело */
@@ -62,18 +66,18 @@ trait HttpBodyTrait
 
     /**
      * Получение распарсенного тела.
-     * @param bool|null повторить парсинг
+     * @param string|null явный тип данных для преобразования
      * @return mixed
      * @throws HttpException
      */
-    public function getParsedBody(bool $reload = false)
+    public function getParsedBody(string $_type = null)
     {
         if (empty($this->parsedBody) || true === $reload) {
             $type = $this->getHeader('Content-Type');
             $body = $this->getBody();
             try {
-                if (false !== strpos($type, 'application/json')) {
-                    $this->parsedBody = json_decode($body);
+                if (false !== strpos($type, 'application/json') || $_type === 'json') {
+                    $this->parsedBody = json_decode($body, EVAS_DECODE_JSON_HTTP_BODY_INTO_ARRAY);
                 }
             } catch (\Exception $e) {
                 throw new HttpException("Failed to parse $type body: $body");
@@ -83,22 +87,5 @@ trait HttpBodyTrait
             }
         }
         return $this->parsedBody;
-    }
-
-    /**
-     * Получение тела с преобразованием json.
-     * @return object|null
-     * @param bool|null парсить ли json в массив
-     * @throws HttpException
-     */
-    public function getJsonParsedBody(bool $toArray = false): ?object
-    {
-        $body = $this->getBody();
-        try {
-            $decoded = json_decode($body, $toArray);
-            return $decoded ?? null;
-        } catch (\Exception $e) {
-            throw new HttpException("Failed to parse json body: $body");
-        }
     }
 }

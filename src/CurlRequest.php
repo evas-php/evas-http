@@ -29,6 +29,16 @@ class CurlRequest extends HttpRequest
     }
 
     /**
+     * Очистка $ch.
+     * @return self
+     */
+    public function reset()
+    {
+        if (!empty($this->ch)) curl_reset($this->ch);
+        return $this;
+    }
+
+    /**
      * Преобразование данных в query-чать uri.
      * @param array|object|null данные
      * @return string

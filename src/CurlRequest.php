@@ -7,10 +7,18 @@
 namespace Evas\Http;
 
 use Evas\Http\CurlResponse;
+use Evas\Http\HttpException;
 use Evas\Http\HttpRequest;
 
 class CurlRequest extends HttpRequest
 {
+    /** @static array маппинг типов прокси */
+    public static $typesMap = [
+        'http' => CURLPROXY_HTTP,
+        'socks4' => CURLPROXY_SOCKS4,
+        'socks5' => CURLPROXY_SOCKS5,
+    ];
+    
     /** @var resource */
     protected $ch;
 
@@ -29,12 +37,59 @@ class CurlRequest extends HttpRequest
     }
 
     /**
-     * Очистка $ch.
+     * Очистка curl handler.
      * @return self
      */
     public function reset()
     {
         if (!empty($this->ch)) curl_reset($this->ch);
+        return $this;
+    }
+
+    /**
+     * Установка user agent.
+     * @param string user agent
+     * @return self
+     */
+    public function withUserAgent(string $user_agent)
+    {
+        curl_setopt($this->getCh(), CURLOPT_USERAGENT, $user_agent);
+        return $this;
+    }
+
+    /**
+     * Установка времени ожидания ответа.
+     * @param int время в секундах
+     * @return self
+     */
+    public function withTimeout(int $timeout)
+    {
+        curl_setopt($this->getCh(), CURLOPT_CONNECTTIMEOUT, $timeout);
+        return $this;
+    }
+
+    /**
+     * Установка прокси.
+     * @param array данные прокси
+     * @return self
+     * @throws HttpException
+     */
+    public function withProxy(array $proxy) {
+        // установка адреса
+        extract($proxy);
+        if (!isset($type) || !isset($ip) || !isset($port)) {
+            throw new HttpException('Curl proxy not has type, ip or host');
+        }
+        $address = sprintf(
+            strrpos($type, 'socks') !== false ? '%sh://%s:%s' : '%s://%s:%s', 
+            $type, $ip, $port
+        );
+        curl_setopt($this->getCh(), CURLOPT_PROXY, $address);
+        // установка логина/пароля
+        if (!empty($login)) curl_setopt($this->getCh(), CURLOPT_PROXYUSERPWD, "$login:password");
+        // установка типа
+        $proxyType = static::$typesMap[$type] ?? null;
+        if (!empty($proxyType)) curl_setopt($this->getCh(), CURLOPT_PROXYTYPE, $proxyType);
         return $this;
     }
 

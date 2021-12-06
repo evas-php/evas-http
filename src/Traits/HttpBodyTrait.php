@@ -72,7 +72,7 @@ trait HttpBodyTrait
      */
     public function getParsedBody(string $_type = null)
     {
-        if (empty($this->parsedBody) || true === $reload) {
+        if (empty($this->parsedBody)) {
             $type = $this->getHeader('Content-Type');
             $body = $this->getBody();
             try {

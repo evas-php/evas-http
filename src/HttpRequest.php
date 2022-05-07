@@ -22,17 +22,17 @@ class HttpRequest implements RequestInterface
     use HttpBodyTrait, HttpHeadersTrait, HttpCookiesTrait, UploadedFilesTrait;
 
     /** @var string метод */
-    public $method;
+    protected $method;
     /** @var string uri */
-    public $uri;
+    protected $uri;
 
     /** @var array параметры POST */
-    public $post = [];
+    protected $post = [];
     /** @var array параметры GET */
-    public $query = [];
+    protected $query = [];
 
     /** @var string ip пользователя */
-    public $userIp;
+    protected $userIp;
 
     /**
      * Установка метода.
@@ -41,7 +41,7 @@ class HttpRequest implements RequestInterface
      */
     public function withMethod(string $method): RequestInterface
     {
-        $this->method = $method;
+        $this->method = strtoupper($method);
         return $this;
     }
 
@@ -124,6 +124,16 @@ class HttpRequest implements RequestInterface
     public function getMethod(): string
     {
         return $this->method;
+    }
+
+    /**
+     * Проверка на совпадение метода.
+     * @param string проверяемый метод
+     * @return bool
+     */
+    public function isMethod(string $method): bool
+    {
+        return $this->method === strtoupper($method);
     }
 
     /**

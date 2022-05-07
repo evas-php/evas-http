@@ -55,6 +55,13 @@ interface RequestInterface
     public function getMethod(): string;
 
     /**
+     * Проверка на совпадение метода.
+     * @param string проверяемый метод
+     * @return bool
+     */
+    public function isMethod(string $method): bool;
+
+    /**
      * Получение uri.
      * @return UriInterface
      */

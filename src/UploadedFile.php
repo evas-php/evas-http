@@ -104,7 +104,7 @@ class UploadedFile implements UploadedFileInterface
      * Получение клиентского типа файла.
      * @return string|null
      */
-    public function getMediaType(): ?string
+    public function getMimeType(): ?string
     {
         return $this->mimeType;
     }

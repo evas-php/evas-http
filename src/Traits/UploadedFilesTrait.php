@@ -6,7 +6,6 @@
  */
 namespace Evas\Http\Traits;
 
-use \InvalidArgumentException;
 use Evas\Http\Interfaces\UploadedFileInterface;
 use Evas\Http\UploadedFile;
 
@@ -19,7 +18,7 @@ trait UploadedFilesTrait
      * Нормализация загруженных файлов.
      * @param array загруженные файлы
      * @return array нормализованные загруженные файлы
-     * @throws InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     public static function normalizeFiles(array $files): array
     {
@@ -32,33 +31,22 @@ trait UploadedFilesTrait
                     ? self::createUploadedFileFromSpec($value)
                     : self::normalizeFiles($value);
             } else {
-                throw new InvalidArgumentException('Invalid value in files specification');
+                throw new \InvalidArgumentException('Invalid value in files specification');
             }
         }
         return $normalized;
     }
 
     /**
-     * Создание объекта загруженного файла или массива объектов.
+     * Создание объекта загруженного файла или массива объектов загруженных файлов.
      * @param array спецификация файла или файлов
      * @return array|UploadedFileInterface|null
      */
     private static function createUploadedFileFromSpec(array $spec)
     {
-        if (is_array($spec['tmp_name'])) {
-            return self::normalizeNestedFileSpec($spec);
-        }
-        if (empty($spec['tmp_name'])) {
-            return null;
-        }
+        if (empty($spec['tmp_name'])) return null;
+        if (is_array($spec['tmp_name'])) return self::normalizeNestedFileSpec($spec);
         return new UploadedFile($spec);
-        // return new UploadedFile(
-        //     $value['tmp_name'],
-        //     (int) $value['size'],
-        //     (int) $value['error'],
-        //     $value['name'],
-        //     $value['type']
-        // );
     }
 
     /**
@@ -82,6 +70,17 @@ trait UploadedFilesTrait
             }
         }
         return $normalized;
+    }
+
+    /**
+     * Добавление массива загруженных файлов.
+     * @param array
+     * @return self
+     */
+    public function withUploadedFiles(array $files): object
+    {
+        $this->uploadedFiles = static::normalizeFiles($files);
+        return $this;
     }
 
     /**

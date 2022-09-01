@@ -45,7 +45,7 @@ class CurlResponse
      */
     public function __construct(CurlRequest &$request)
     {
-        $ch = $request->prepareSend()->getCh();
+        $ch = $request->getCh();
         try {
             $body = curl_exec($ch);
             if (curl_error($ch)) {

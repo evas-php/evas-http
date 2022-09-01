@@ -272,7 +272,7 @@ class HttpRequest implements RequestInterface
 
     /**
      * Создание или заполнение объекта запроса из глобальных свойств php.
-     * @param HttpRequest уже существующий объект
+     * @param HttpRequest|null уже существующий объект http-запроса, если его нужно переконфигурировать
      * @return static
      */
     public static function createFromGlobals(HttpRequest &$instanse = null): HttpRequest

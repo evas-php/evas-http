@@ -13,10 +13,12 @@ use Evas\Http\HttpRequest;
 class CurlRequest extends HttpRequest
 {
     /** @static array маппинг типов прокси */
-    public static $typesMap = [
+    public static $proxyTypesMap = [
         'http' => CURLPROXY_HTTP,
         'socks4' => CURLPROXY_SOCKS4,
         'socks5' => CURLPROXY_SOCKS5,
+        'socks4a' =>  CURLPROXY_SOCKS4A,
+        'socks5hostname' => CURLPROXY_SOCKS5_HOSTNAME,
     ];
     
     /** @var resource */
@@ -75,21 +77,24 @@ class CurlRequest extends HttpRequest
      * @throws HttpException
      */
     public function withProxy(array $proxy) {
-        // установка адреса
         extract($proxy);
         if (!isset($type) || !isset($ip) || !isset($port)) {
             throw new HttpException('Curl proxy not has type, ip or host');
         }
+        // установка адреса
         $address = sprintf(
             strrpos($type, 'socks') !== false ? '%sh://%s:%s' : '%s://%s:%s', 
             $type, $ip, $port
         );
         curl_setopt($this->getCh(), CURLOPT_PROXY, $address);
         // установка логина/пароля
-        if (!empty($login)) curl_setopt($this->getCh(), CURLOPT_PROXYUSERPWD, "$login:password");
+        if (!empty($login)) curl_setopt($this->getCh(), CURLOPT_PROXYUSERPWD, "$login:$password");
         // установка типа
-        $proxyType = static::$typesMap[$type] ?? null;
-        if (!empty($proxyType)) curl_setopt($this->getCh(), CURLOPT_PROXYTYPE, $proxyType);
+        $proxyType = static::$proxyTypesMap[$type] ?? null;
+        if (!empty($proxyType)) {
+            // if ($proxyType === 'socks5') curl_setopt($this->getCh(), CURLOPT_SOCKS5_AUTH, CURLAUTH_BASIC | CURLAUTH_GSSAPI | CURLAUTH_NONE );
+            curl_setopt($this->getCh(), CURLOPT_PROXYTYPE, $proxyType);
+        }
         return $this;
     }
 
@@ -100,13 +105,7 @@ class CurlRequest extends HttpRequest
      */
     public static function prepareDataToUriQuery($data = null): string
     {
-        if (empty($data)) return '';
-        assert(is_array($data) || is_object($data));
-        $parts = [];
-        foreach ($data as $key => $value) {
-            $parts[] = urlencode($key) .'='. urlencode($value);
-        }
-        return '?' . implode('&', $parts);
+        return empty($data) ? '' : ('?' . http_build_query($data));
     }
 
     /**
@@ -121,10 +120,6 @@ class CurlRequest extends HttpRequest
 
         // добавляем данные запроса
         if ('GET' !== $method) {
-            // $type = $this->getHeader('Content-Type');
-            // if (false !== strpos($type, 'application/json')) {
-            //     $this->withBodyJson($this->getBody());
-            // }
             $body = $this->getBody();
 
             if ('POST' === $method) curl_setopt($ch, CURLOPT_POST, 1);
@@ -157,6 +152,7 @@ class CurlRequest extends HttpRequest
      */
     public function send(): CurlResponse
     {
+        $this->prepareSend();
         return new CurlResponse($this);
     }
 

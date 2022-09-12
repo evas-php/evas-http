@@ -84,17 +84,6 @@ trait UploadedFilesTrait
     }
 
     /**
-     * Добавление массива загруженных файлов.
-     * @param array
-     * @return self
-     */
-    public function withUploadedFiles(array $files): object
-    {
-        $this->uploadedFiles = static::normalizeFiles($files);
-        return $this;
-    }
-
-    /**
      * Проверка наличия загруженных файлов.
      * @return bool
      */
